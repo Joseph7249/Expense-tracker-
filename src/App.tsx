@@ -57,8 +57,8 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const COLORS = [
-  '#141414', '#5A5A40', '#FF6321', '#00FF00', 
-  '#4a4a4a', '#8E9299', '#d1d1d1', '#f5f5f5'
+  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', 
+  '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'
 ];
 
 export default function App() {
@@ -164,7 +164,7 @@ function MainApp() {
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-stone-200 border-t-stone-900 rounded-full animate-spin" />
-          <p className="text-stone-500 font-sans text-sm tracking-widest uppercase">Loading SpendWise</p>
+          <p className="text-stone-500 font-sans text-sm tracking-widest uppercase">Loading Budget Buddy</p>
         </div>
       </div>
     );
@@ -181,13 +181,13 @@ function MainApp() {
           <div className="mb-8 inline-flex p-4 bg-white rounded-3xl shadow-sm border border-black/5">
             <Wallet className="w-12 h-12 text-stone-900" />
           </div>
-          <h1 className="text-4xl font-sans font-medium text-stone-900 mb-4 tracking-tight">Student SpendWise</h1>
+          <h1 className="text-4xl font-sans font-medium text-stone-900 mb-4 tracking-tight">Budget Buddy</h1>
           <p className="text-stone-600 mb-8 leading-relaxed">
-            Master your finances. Track every penny, set budgets, and visualize your spending habits with ease.
+            Your personal finance companion. Track expenses, stay on budget, and achieve your financial goals with your new best friend.
           </p>
           <button
             onClick={handleLogin}
-            className="w-full bg-stone-900 text-white rounded-2xl py-4 font-medium shadow-lg shadow-stone-900/20 hover:bg-stone-800 transition-all flex items-center justify-center gap-3"
+            className="w-full bg-indigo-600 text-white rounded-2xl py-4 font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3"
           >
             <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" referrerPolicy="no-referrer" />
             Continue with Google
@@ -201,12 +201,12 @@ function MainApp() {
     <div className="min-h-screen bg-stone-50 flex flex-col md:flex-row">
       {/* Sidebar */}
       <nav className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-black/5 p-6 flex flex-col">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="p-2 bg-stone-900 rounded-xl">
-            <Wallet className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-3 mb-10">
+            <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
+              <Wallet className="w-6 h-6 text-white" />
+            </div>
+            <span className="font-sans font-bold text-xl tracking-tight text-indigo-900">Budget Buddy</span>
           </div>
-          <span className="font-sans font-medium text-xl tracking-tight">SpendWise</span>
-        </div>
 
         <div className="flex-1 space-y-2">
           <NavButton 
@@ -272,7 +272,7 @@ function MainApp() {
             </div>
             <button 
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-stone-900 text-white px-6 py-3 rounded-2xl font-medium shadow-lg shadow-stone-900/10 hover:bg-stone-800 transition-all flex items-center gap-2"
+              className="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
               Add Expense
@@ -294,19 +294,19 @@ function MainApp() {
                     label="Total Spent" 
                     value={`${profile?.currency || '$'}${totalSpent.toLocaleString()}`}
                     trend="+12% from last month"
-                    icon={<TrendingUp className="w-6 h-6 text-stone-900" />}
+                    icon={<TrendingUp className="w-6 h-6 text-indigo-600" />}
                   />
                   <StatCard 
                     label="Monthly Budget" 
                     value={`${profile?.currency || '$'}${profile?.monthlyBudget?.toLocaleString() || '0'}`}
                     trend={`${Math.round((totalSpent / (profile?.monthlyBudget || 1)) * 100)}% utilized`}
-                    icon={<Wallet className="w-6 h-6 text-stone-900" />}
+                    icon={<Wallet className="w-6 h-6 text-indigo-600" />}
                   />
                   <StatCard 
                     label="Remaining" 
                     value={`${profile?.currency || '$'}${Math.max(0, (profile?.monthlyBudget || 0) - totalSpent).toLocaleString()}`}
                     trend="Safe to spend"
-                    icon={<ChevronRight className="w-6 h-6 text-stone-900" />}
+                    icon={<ChevronRight className="w-6 h-6 text-indigo-600" />}
                   />
                 </div>
 
@@ -624,7 +624,7 @@ function MainApp() {
 
                   <button 
                     type="submit"
-                    className="w-full bg-stone-900 text-white rounded-2xl py-4 font-medium shadow-lg shadow-stone-900/10 hover:bg-stone-800 transition-all mt-4"
+                    className="w-full bg-indigo-600 text-white rounded-2xl py-4 font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all mt-4"
                   >
                     Save Expense
                   </button>
@@ -692,8 +692,8 @@ function NavButton({ active, onClick, icon, label }: { active: boolean, onClick:
       className={cn(
         "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium",
         active 
-          ? "bg-stone-900 text-white shadow-md shadow-stone-900/10" 
-          : "text-stone-500 hover:bg-stone-50 hover:text-stone-900"
+          ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" 
+          : "text-stone-500 hover:bg-indigo-50 hover:text-indigo-600"
       )}
     >
       {icon}
@@ -706,7 +706,7 @@ function StatCard({ label, value, trend, icon }: { label: string, value: string,
   return (
     <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-sm">
       <div className="flex items-center justify-between mb-6">
-        <div className="p-3 bg-stone-50 rounded-2xl">
+        <div className="p-3 bg-indigo-50 rounded-2xl">
           {icon}
         </div>
       </div>
@@ -724,19 +724,18 @@ interface ExpenseItemProps {
 
 function ExpenseItem({ expense, currency }: ExpenseItemProps) {
   return (
-    <div className="flex items-center justify-between p-4 bg-stone-50/50 rounded-2xl border border-black/5">
+    <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-black/5 hover:border-indigo-200 transition-all shadow-sm">
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl bg-white border border-black/5 flex items-center justify-center text-stone-900">
-          {/* Category icon mapping could go here */}
+        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
           <span className="text-[10px] font-bold uppercase tracking-tighter">{expense.category.slice(0, 2)}</span>
         </div>
         <div>
           <p className="text-sm font-medium text-stone-900">{expense.description || expense.category}</p>
-          <p className="text-[10px] text-stone-500 uppercase tracking-wider font-bold">{expense.category}</p>
+          <p className="text-[10px] text-stone-400 uppercase tracking-wider font-bold">{expense.category}</p>
         </div>
       </div>
       <div className="text-right">
-        <p className="text-sm font-mono font-medium text-stone-900">{currency}{expense.amount.toFixed(2)}</p>
+        <p className="text-sm font-mono font-bold text-indigo-600">{currency}{expense.amount.toFixed(2)}</p>
         <p className="text-[10px] text-stone-400">{new Date(expense.date?.seconds * 1000).toLocaleDateString()}</p>
       </div>
     </div>

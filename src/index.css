@@ -22,5 +22,5 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-stone-200 rounded-full hover:bg-stone-300 transition-colors;
+  @apply bg-indigo-200 rounded-full hover:bg-indigo-300 transition-colors;
 }
