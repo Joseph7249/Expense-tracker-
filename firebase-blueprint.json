@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and global settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "monthlyBudget": { "type": "number", "description": "Total monthly budget goal" },
+        "currency": { "type": "string", "description": "User's preferred currency symbol" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "A single expense transaction",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the owner" },
+        "amount": { "type": "number" },
+        "category": { "type": "string", "enum": ["Food", "Transport", "Entertainment", "Education", "Shopping", "Rent", "Utilities", "Other"] },
+        "date": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "category", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document"
+    },
+    "/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Individual expense records"
+    }
+  }
+}

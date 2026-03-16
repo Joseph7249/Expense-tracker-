@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (UID)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - monthlyBudget: number (optional)
+    //   - currency: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: expenses
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required, matches owner)
+    //   - amount: number (required, positive)
+    //   - category: string (required, enum)
+    //   - date: timestamp (required)
+    //   - description: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             ( !('monthlyBudget' in data) || data.monthlyBudget is number ) &&
+             ( !('currency' in data) || data.currency is string );
+    }
+
+    function isValidExpense(data) {
+      let categories = ["Food", "Transport", "Entertainment", "Education", "Shopping", "Rent", "Utilities", "Other"];
+      return data.keys().hasAll(['userId', 'amount', 'category', 'date']) &&
+             data.userId == request.auth.uid &&
+             data.amount is number && data.amount > 0 &&
+             data.category in categories &&
+             data.date is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      request.resource.data.uid == resource.data.uid;
+    }
+
+    match /expenses/{expenseId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidExpense(request.resource.data);
+      allow update: if isDocOwner() && isValidExpense(request.resource.data) &&
+                      request.resource.data.userId == resource.data.userId;
+      allow delete: if isDocOwner();
+    }
+  }
+}
