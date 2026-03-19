@@ -31,22 +31,38 @@ import {
   TrendingUp,
   Calendar,
   ChevronRight,
-  X
+  X,
+  Mail,
+  Lock,
+  User as UserIcon,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  PiggyBank,
+  Utensils,
+  Car,
+  PlusSquare,
+  ArrowDownCircle,
+  Search,
+  MoreHorizontal,
+  ArrowLeft
 } from 'lucide-react';
 import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
   Tooltip,
-  Legend
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar
 } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { UserProfile, Expense, CATEGORIES, Category } from './types';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { clsx, type ClassValue } from 'clsx';
@@ -57,9 +73,17 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', 
-  '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'
+  '#52c48a', '#3b82f6', '#f59e0b', '#ef4444', 
+  '#8b5cf6', '#ec4899', '#06b6d4', '#10b981'
 ];
+
+const THEME = {
+  primary: '#52c48a',
+  primaryLight: '#f0f9f4',
+  textMain: '#1a1a1a',
+  textMuted: '#737373',
+  bg: '#f8f9fa'
+};
 
 export default function App() {
   return (
@@ -74,8 +98,9 @@ function MainApp() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'expenses' | 'analytics' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'analytics' | 'settings'>('dashboard');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   // Auth Listener
   useEffect(() => {
@@ -161,388 +186,372 @@ function MainApp() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#f0f9f4]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-stone-200 border-t-stone-900 rounded-full animate-spin" />
-          <p className="text-stone-500 font-sans text-sm tracking-widest uppercase">Loading Budget Buddy</p>
+          <div className="w-12 h-12 border-4 border-[#52c48a]/20 border-t-[#52c48a] rounded-full animate-spin" />
+          <p className="text-[#52c48a] font-bold text-xs tracking-widest uppercase">Loading Budget Buddy</p>
         </div>
       </div>
     );
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full text-center"
-        >
-          <div className="mb-8 inline-flex p-4 bg-white rounded-3xl shadow-sm border border-black/5">
-            <Wallet className="w-12 h-12 text-stone-900" />
-          </div>
-          <h1 className="text-4xl font-sans font-medium text-stone-900 mb-4 tracking-tight">Budget Buddy</h1>
-          <p className="text-stone-600 mb-8 leading-relaxed">
-            Your personal finance companion. Track expenses, stay on budget, and achieve your financial goals with your new best friend.
-          </p>
-          <button
-            onClick={handleLogin}
-            className="w-full bg-indigo-600 text-white rounded-2xl py-4 font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3"
-          >
-            <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" referrerPolicy="no-referrer" />
-            Continue with Google
-          </button>
-        </motion.div>
-      </div>
-    );
+    return <AuthScreen mode={authMode} setMode={setAuthMode} onLogin={handleLogin} />;
   }
 
+  const chartData = [
+    { name: 'Mon', value: 400 },
+    { name: 'Tue', value: 700 },
+    { name: 'Wed', value: 500 },
+    { name: 'Thu', value: 900 },
+    { name: 'Fri', value: 600 },
+    { name: 'Sat', value: 800 },
+    { name: 'Sun', value: 500 },
+  ];
+
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <nav className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-black/5 p-6 flex flex-col">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
-              <Wallet className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-sans font-bold text-xl tracking-tight text-indigo-900">Budget Buddy</span>
+    <div className="min-h-screen bg-[#f8f9fa] flex flex-col max-w-md mx-auto shadow-2xl relative overflow-hidden font-sans text-[#1a1a1a]">
+      {/* Header */}
+      <header className="px-6 py-6 flex items-center justify-between bg-white border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#f0f9f4] rounded-xl flex items-center justify-center">
+            <PiggyBank className="w-6 h-6 text-[#52c48a]" />
           </div>
-
-        <div className="flex-1 space-y-2">
-          <NavButton 
-            active={activeTab === 'dashboard'} 
-            onClick={() => setActiveTab('dashboard')}
-            icon={<LayoutDashboard className="w-5 h-5" />}
-            label="Dashboard"
-          />
-          <NavButton 
-            active={activeTab === 'expenses'} 
-            onClick={() => setActiveTab('expenses')}
-            icon={<Calendar className="w-5 h-5" />}
-            label="Expenses"
-          />
-          <NavButton 
-            active={activeTab === 'analytics'} 
-            onClick={() => setActiveTab('analytics')}
-            icon={<PieChartIcon className="w-5 h-5" />}
-            label="Analytics"
-          />
-          <NavButton 
-            active={activeTab === 'settings'} 
-            onClick={() => setActiveTab('settings')}
-            icon={<Settings className="w-5 h-5" />}
-            label="Settings"
-          />
+          <h1 className="font-bold text-lg tracking-tight">Ascend Wallet</h1>
         </div>
+        <img 
+          src={profile?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`} 
+          className="w-10 h-10 rounded-full border-2 border-[#52c48a]/20"
+          alt="Avatar"
+          referrerPolicy="no-referrer"
+        />
+      </header>
 
-        <div className="mt-auto pt-6 border-t border-black/5">
-          <div className="flex items-center gap-3 mb-4">
-            <img 
-              src={profile?.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} 
-              className="w-10 h-10 rounded-full border border-black/5"
-              alt="Avatar"
-              referrerPolicy="no-referrer"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-900 truncate">{profile?.displayName || 'User'}</p>
-              <p className="text-xs text-stone-500 truncate">{profile?.email}</p>
-            </div>
-          </div>
-          <button 
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all text-sm font-medium"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <div className="max-w-5xl mx-auto">
-          <header className="flex items-center justify-between mb-10">
-            <div>
-              <h2 className="text-3xl font-sans font-medium text-stone-900 tracking-tight">
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-              </h2>
-              <p className="text-stone-500 text-sm mt-1">
-                {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
-            </div>
-            <button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
+      <main className="flex-1 overflow-y-auto pb-24">
+        <AnimatePresence mode="wait">
+          {activeTab === 'dashboard' && (
+            <motion.div 
+              key="dashboard"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-6 space-y-6"
             >
-              <Plus className="w-5 h-5" />
-              Add Expense
-            </button>
-          </header>
-
-          <AnimatePresence mode="wait">
-            {activeTab === 'dashboard' && (
-              <motion.div 
-                key="dashboard"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-8"
-              >
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <StatCard 
-                    label="Total Spent" 
-                    value={`${profile?.currency || '$'}${totalSpent.toLocaleString()}`}
-                    trend="+12% from last month"
-                    icon={<TrendingUp className="w-6 h-6 text-indigo-600" />}
-                  />
-                  <StatCard 
-                    label="Monthly Budget" 
-                    value={`${profile?.currency || '$'}${profile?.monthlyBudget?.toLocaleString() || '0'}`}
-                    trend={`${Math.round((totalSpent / (profile?.monthlyBudget || 1)) * 100)}% utilized`}
-                    icon={<Wallet className="w-6 h-6 text-indigo-600" />}
-                  />
-                  <StatCard 
-                    label="Remaining" 
-                    value={`${profile?.currency || '$'}${Math.max(0, (profile?.monthlyBudget || 0) - totalSpent).toLocaleString()}`}
-                    trend="Safe to spend"
-                    icon={<ChevronRight className="w-6 h-6 text-indigo-600" />}
-                  />
+              {/* Total Expense Card */}
+              <div className="bg-[#52c48a] rounded-[32px] p-8 text-white shadow-xl shadow-[#52c48a]/20 relative overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-widest opacity-80">Total Expense</span>
+                    <Eye className="w-4 h-4 opacity-80" />
+                  </div>
+                  <div className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold">
+                    +2.4% this month
+                  </div>
                 </div>
+                <h2 className="text-4xl font-bold mb-6 tracking-tight">
+                  {profile?.currency || '$'}{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </h2>
+                <p className="text-xs opacity-80 mb-6">Available in 2 accounts</p>
+                
+                <div className="flex items-center gap-6 pt-6 border-t border-white/10">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-300" />
+                    <span className="text-[10px] font-bold">Savings: $8,200</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-cyan-300" />
+                    <span className="text-[10px] font-bold">Savings: $8,200</span>
+                  </div>
+                </div>
+              </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Recent Activity */}
-                  <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="font-sans font-medium text-lg">Recent Expenses</h3>
-                      <button 
-                        onClick={() => setActiveTab('expenses')}
-                        className="text-stone-500 text-sm hover:text-stone-900 transition-colors"
+              {/* Spending Trend */}
+              <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-bold text-base">Spending Trend</h3>
+                  <span className="text-[10px] font-bold text-[#52c48a] uppercase tracking-wider">Last 7 Days</span>
+                </div>
+                <div className="h-40 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#52c48a" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#52c48a" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <Area 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#52c48a" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorValue)" 
+                      />
+                      <XAxis 
+                        dataKey="name" 
+                        hide 
+                      />
+                      <YAxis hide />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex justify-between mt-2 px-2">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                    <span key={day} className="text-[10px] font-bold text-gray-400">{day}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                <button 
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="min-w-[64px] h-[64px] bg-white rounded-2xl border border-gray-100 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="w-6 h-6 text-[#52c48a]" />
+                </button>
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="min-w-[64px] h-[64px] bg-white rounded-2xl border border-gray-100 shadow-sm" />
+                ))}
+              </div>
+
+              {/* Recent Transactions */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-base">Recent Activity</h3>
+                  <button 
+                    onClick={() => setActiveTab('transactions')}
+                    className="text-[10px] font-bold text-[#52c48a] uppercase tracking-wider"
+                  >
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {expenses.slice(0, 5).map(expense => (
+                    <ExpenseItem key={expense.id} expense={expense} currency={profile?.currency || '$'} />
+                  ))}
+                  {expenses.length === 0 && (
+                    <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200">
+                      <p className="text-gray-400 text-sm italic">No transactions yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Reward Banner */}
+              <div className="bg-[#e0f2fe] rounded-3xl p-6 flex items-center gap-4 border border-blue-100">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                  <TrendingUp className="w-6 h-6 text-blue-500" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-blue-900">Reward Active</h4>
+                  <p className="text-[10px] text-blue-700">You've earned 5% cashback on your coffee purchase this week!</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'transactions' && (
+            <motion.div 
+              key="transactions"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-6 space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <button onClick={() => setActiveTab('dashboard')} className="p-2 hover:bg-gray-100 rounded-full">
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <h2 className="font-bold text-lg">Transactions</h2>
+                <button className="p-2 hover:bg-gray-100 rounded-full">
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search" 
+                  className="w-full bg-white border border-gray-100 rounded-2xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[#52c48a]/20"
+                />
+              </div>
+
+              <div className="flex p-1 bg-gray-100 rounded-2xl">
+                {['All', 'Income', 'Expenses'].map(tab => (
+                  <button 
+                    key={tab}
+                    className={cn(
+                      "flex-1 py-2 text-xs font-bold rounded-xl transition-all",
+                      tab === 'All' ? "bg-white shadow-sm text-[#1a1a1a]" : "text-gray-500"
+                    )}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Recent Activity</h3>
+                  <span className="bg-[#f0f9f4] text-[#52c48a] px-2 py-0.5 rounded-full text-[8px] font-bold uppercase">
+                    {expenses.length} Items
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {expenses.map(expense => (
+                    <ExpenseItem key={expense.id} expense={expense} currency={profile?.currency || '$'} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Summary Card */}
+              <div className="bg-[#52c48a] rounded-3xl p-6 text-white flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold opacity-80 uppercase mb-1">Total Expense (Feb)</p>
+                  <h3 className="text-2xl font-bold">${totalSpent.toLocaleString()}</h3>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="bg-white/20 px-2 py-0.5 rounded-full text-[8px] font-bold">-12% from Jan</span>
+                    <span className="text-[8px] font-bold opacity-80">Keep it up!</span>
+                  </div>
+                </div>
+                <TrendingUp className="w-12 h-12 opacity-20 rotate-45" />
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'analytics' && (
+            <motion.div 
+              key="analytics"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-6 space-y-6"
+            >
+              <h2 className="font-bold text-lg">Analytics</h2>
+              <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100">
+                <h3 className="font-bold text-sm mb-6">Category Breakdown</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={categoryData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
                       >
-                        View All
-                      </button>
-                    </div>
-                    <div className="space-y-4">
-                      {expenses.slice(0, 5).map(expense => (
-                        <ExpenseItem {...{ key: expense.id || Math.random().toString(), expense, currency: profile?.currency || '$' } as any} />
-                      ))}
-                      {expenses.length === 0 && (
-                        <p className="text-center py-10 text-stone-400 italic">No expenses recorded yet.</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Quick Chart */}
-                  <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-sm">
-                    <h3 className="font-sans font-medium text-lg mb-6">Spending by Category</h3>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={categoryData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {categoryData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip 
-                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      {categoryData.slice(0, 4).map((item, i) => (
-                        <div key={item.name} className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                          <span className="text-xs text-stone-600 truncate">{item.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                        {categoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'expenses' && (
-              <motion.div 
-                key="expenses"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-white rounded-3xl border border-black/5 shadow-sm overflow-hidden"
-              >
-                <div className="p-8 border-b border-black/5 flex items-center justify-between">
-                  <h3 className="font-sans font-medium text-lg">Transaction History</h3>
-                  <div className="flex gap-2">
-                    {/* Filter buttons could go here */}
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-stone-50/50">
-                        <th className="p-4 pl-8 text-xs font-medium text-stone-400 uppercase tracking-wider">Date</th>
-                        <th className="p-4 text-xs font-medium text-stone-400 uppercase tracking-wider">Description</th>
-                        <th className="p-4 text-xs font-medium text-stone-400 uppercase tracking-wider">Category</th>
-                        <th className="p-4 text-xs font-medium text-stone-400 uppercase tracking-wider text-right">Amount</th>
-                        <th className="p-4 pr-8 text-xs font-medium text-stone-400 uppercase tracking-wider text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100">
-                      {expenses.map(expense => (
-                        <tr key={expense.id} className="hover:bg-stone-50/50 transition-colors group">
-                          <td className="p-4 pl-8 text-sm text-stone-600">
-                            {new Date(expense.date?.seconds * 1000).toLocaleDateString()}
-                          </td>
-                          <td className="p-4 text-sm font-medium text-stone-900">{expense.description || 'No description'}</td>
-                          <td className="p-4">
-                            <span className="inline-flex px-2 py-1 rounded-lg bg-stone-100 text-stone-600 text-[10px] font-bold uppercase tracking-wider">
-                              {expense.category}
-                            </span>
-                          </td>
-                          <td className="p-4 text-sm font-mono font-medium text-stone-900 text-right">
-                            {profile?.currency}{expense.amount.toFixed(2)}
-                          </td>
-                          <td className="p-4 pr-8 text-right">
-                            <button 
-                              onClick={() => handleDeleteExpense(expense.id!)}
-                              className="p-2 text-stone-300 hover:text-red-600 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {expenses.length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="p-10 text-center text-stone-400 italic">No transactions found.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'analytics' && (
-              <motion.div 
-                key="analytics"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-8"
-              >
-                <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-sm">
-                  <h3 className="font-sans font-medium text-lg mb-8">Spending Trends</h3>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={categoryData}>
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#8E9299' }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#8E9299' }} />
-                        <Tooltip 
-                          cursor={{ fill: '#f5f5f5' }}
-                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                        />
-                        <Bar dataKey="value" fill="#141414" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-sm">
-                    <h3 className="font-sans font-medium text-lg mb-6">Category Breakdown</h3>
-                    <div className="space-y-4">
-                      {categoryData.sort((a,b) => b.value - a.value).map((item, i) => (
-                        <div key={item.name} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                            <span className="text-sm text-stone-600">{item.name}</span>
-                          </div>
-                          <span className="text-sm font-mono font-medium">{profile?.currency}{item.value.toFixed(2)}</span>
-                        </div>
-                      ))}
+              </div>
+              
+              <div className="space-y-4">
+                {categoryData.map((item, i) => (
+                  <div key={item.name} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                      <span className="text-sm font-medium">{item.name}</span>
                     </div>
+                    <span className="text-sm font-bold">{profile?.currency}{item.value.toLocaleString()}</span>
                   </div>
-                  <div className="bg-stone-900 rounded-3xl p-8 text-white shadow-xl shadow-stone-900/20">
-                    <h3 className="font-sans font-medium text-lg mb-4">Budget Insights</h3>
-                    <p className="text-stone-400 text-sm leading-relaxed mb-6">
-                      You've spent {Math.round((totalSpent / (profile?.monthlyBudget || 1)) * 100)}% of your monthly budget. 
-                      {totalSpent > (profile?.monthlyBudget || 0) 
-                        ? " You are currently over budget. Consider trimming non-essential expenses." 
-                        : " You're on track to stay within your limits this month."}
-                    </p>
-                    <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(100, (totalSpent / (profile?.monthlyBudget || 1)) * 100)}%` }}
-                        className={cn(
-                          "h-full rounded-full",
-                          totalSpent > (profile?.monthlyBudget || 0) ? "bg-red-500" : "bg-emerald-400"
-                        )}
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'settings' && (
+            <motion.div 
+              key="settings"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="p-6 space-y-6"
+            >
+              <h2 className="font-bold text-lg">Settings</h2>
+              <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm space-y-8">
+                <div className="space-y-4">
+                  <h3 className="font-bold text-base">Budget Settings</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Monthly Budget Limit</label>
+                      <input 
+                        type="number"
+                        value={profile?.monthlyBudget || ''}
+                        onChange={(e) => handleUpdateProfile({ monthlyBudget: parseFloat(e.target.value) })}
+                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52c48a]/20 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Currency Symbol</label>
+                      <input 
+                        type="text"
+                        value={profile?.currency || ''}
+                        onChange={(e) => handleUpdateProfile({ currency: e.target.value })}
+                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52c48a]/20 transition-all"
                       />
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            )}
 
-            {activeTab === 'settings' && (
-              <motion.div 
-                key="settings"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="max-w-2xl"
-              >
-                <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-sm space-y-8">
-                  <div className="space-y-4">
-                    <h3 className="font-sans font-medium text-lg">Budget Settings</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Monthly Budget Limit</label>
-                        <input 
-                          type="number"
-                          value={profile?.monthlyBudget || ''}
-                          onChange={(e) => handleUpdateProfile({ monthlyBudget: parseFloat(e.target.value) })}
-                          className="w-full bg-stone-50 border border-black/5 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-900/10 transition-all font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Currency Symbol</label>
-                        <input 
-                          type="text"
-                          value={profile?.currency || ''}
-                          onChange={(e) => handleUpdateProfile({ currency: e.target.value })}
-                          className="w-full bg-stone-50 border border-black/5 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-900/10 transition-all font-mono"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-8 border-t border-black/5">
-                    <h3 className="font-sans font-medium text-lg mb-4">Account Information</h3>
-                    <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl border border-black/5">
-                      <img src={user.photoURL || ''} className="w-12 h-12 rounded-full" alt="Profile" referrerPolicy="no-referrer" />
-                      <div>
-                        <p className="font-medium text-stone-900">{user.displayName}</p>
-                        <p className="text-sm text-stone-500">{user.email}</p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="pt-8 border-t border-gray-100">
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-4 text-red-500 bg-red-50 rounded-2xl font-bold text-sm transition-all"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between z-40">
+        <NavButton 
+          active={activeTab === 'dashboard'} 
+          onClick={() => setActiveTab('dashboard')}
+          icon={<LayoutDashboard className="w-6 h-6" />}
+        />
+        <NavButton 
+          active={activeTab === 'transactions'} 
+          onClick={() => setActiveTab('transactions')}
+          icon={<Calendar className="w-6 h-6" />}
+        />
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="w-14 h-14 bg-[#52c48a] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#52c48a]/30 -mt-12 border-4 border-[#f8f9fa]"
+        >
+          <Plus className="w-8 h-8" />
+        </button>
+        <NavButton 
+          active={activeTab === 'analytics'} 
+          onClick={() => setActiveTab('analytics')}
+          icon={<PieChartIcon className="w-6 h-6" />}
+        />
+        <NavButton 
+          active={activeTab === 'settings'} 
+          onClick={() => setActiveTab('settings')}
+          icon={<Settings className="w-6 h-6" />}
+        />
+      </nav>
 
       {/* Add Expense Modal */}
       <AnimatePresence>
@@ -624,7 +633,7 @@ function MainApp() {
 
                   <button 
                     type="submit"
-                    className="w-full bg-indigo-600 text-white rounded-2xl py-4 font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all mt-4"
+                    className="w-full bg-[#52c48a] text-white rounded-2xl py-4 font-bold shadow-lg shadow-[#52c48a]/20 hover:bg-[#45b37a] transition-all mt-4"
                   >
                     Save Expense
                   </button>
@@ -685,35 +694,17 @@ function MainApp() {
   }
 }
 
-function NavButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
+function NavButton({ active, onClick, icon }: { active: boolean, onClick: () => void, icon: React.ReactNode }) {
   return (
     <button 
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium",
-        active 
-          ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" 
-          : "text-stone-500 hover:bg-indigo-50 hover:text-indigo-600"
+        "p-3 rounded-2xl transition-all",
+        active ? "text-[#52c48a] bg-[#f0f9f4]" : "text-gray-400 hover:text-gray-600"
       )}
     >
       {icon}
-      {label}
     </button>
-  );
-}
-
-function StatCard({ label, value, trend, icon }: { label: string, value: string, trend: string, icon: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-sm">
-      <div className="flex items-center justify-between mb-6">
-        <div className="p-3 bg-indigo-50 rounded-2xl">
-          {icon}
-        </div>
-      </div>
-      <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">{label}</p>
-      <h4 className="text-3xl font-sans font-medium text-stone-900 tracking-tight mb-2">{value}</h4>
-      <p className="text-xs text-stone-500">{trend}</p>
-    </div>
   );
 }
 
@@ -722,22 +713,223 @@ interface ExpenseItemProps {
   currency: string;
 }
 
-function ExpenseItem({ expense, currency }: ExpenseItemProps) {
+const ExpenseItem: React.FC<ExpenseItemProps> = ({ expense, currency }) => {
+  const isIncome = expense.category === 'Income';
+  
+  const getIcon = () => {
+    switch(expense.category) {
+      case 'Food': return <Utensils className="w-5 h-5" />;
+      case 'Transport': return <Car className="w-5 h-5" />;
+      case 'Education': return <PlusSquare className="w-5 h-5" />;
+      case 'Income': return <ArrowDownCircle className="w-5 h-5" />;
+      default: return <Wallet className="w-5 h-5" />;
+    }
+  };
+
+  const getIconBg = () => {
+    switch(expense.category) {
+      case 'Food': return 'bg-orange-50 text-orange-500';
+      case 'Transport': return 'bg-blue-50 text-blue-500';
+      case 'Education': return 'bg-red-50 text-red-500';
+      case 'Income': return 'bg-green-50 text-green-500';
+      default: return 'bg-gray-50 text-gray-500';
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-black/5 hover:border-indigo-200 transition-all shadow-sm">
+    <div className="flex items-center justify-between p-4 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-          <span className="text-[10px] font-bold uppercase tracking-tighter">{expense.category.slice(0, 2)}</span>
+        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", getIconBg())}>
+          {getIcon()}
         </div>
         <div>
-          <p className="text-sm font-medium text-stone-900">{expense.description || expense.category}</p>
-          <p className="text-[10px] text-stone-400 uppercase tracking-wider font-bold">{expense.category}</p>
+          <p className="text-sm font-bold text-[#1a1a1a]">{expense.description || expense.category}</p>
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{expense.category} • 2 hours ago</p>
         </div>
       </div>
       <div className="text-right">
-        <p className="text-sm font-mono font-bold text-indigo-600">{currency}{expense.amount.toFixed(2)}</p>
-        <p className="text-[10px] text-stone-400">{new Date(expense.date?.seconds * 1000).toLocaleDateString()}</p>
+        <p className={cn("text-sm font-bold", isIncome ? "text-[#52c48a]" : "text-[#1a1a1a]")}>
+          {isIncome ? '+' : '-'}{currency}{expense.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </p>
       </div>
+    </div>
+  );
+};
+
+function AuthScreen({ mode, setMode, onLogin }: { mode: 'login' | 'signup', setMode: (m: 'login' | 'signup') => void, onLogin: () => void }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (mode === 'signup') {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f0f9f4] flex flex-col items-center p-6 font-sans text-[#1a1a1a]">
+      <div className="w-full max-w-md mt-12 mb-12 flex flex-col items-center">
+        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6">
+          <PiggyBank className="w-10 h-10 text-[#52c48a]" />
+        </div>
+        <h1 className="text-4xl font-bold text-[#52c48a] mb-6 tracking-tight">Budget Buddy</h1>
+        
+        {mode === 'login' && (
+          <div className="space-y-3 mb-12">
+            <div className="flex items-center gap-3 text-xs font-bold text-[#52c48a]/60">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Automated expense tracking</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs font-bold text-[#52c48a]/60">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Visual spending insights</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs font-bold text-[#52c48a]/60">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Monthly budget goals</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md bg-white rounded-[40px] p-10 shadow-xl shadow-[#52c48a]/10"
+      >
+        <h2 className="text-2xl font-bold mb-2">
+          {mode === 'login' ? 'Welcome Back !' : 'Create Your Account'}
+        </h2>
+        <p className="text-xs text-gray-400 font-bold mb-8">
+          {mode === 'login' ? 'Enter your credentials to access your account' : 'Sign up to manage your finances'}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'signup' && (
+            <div className="relative">
+              <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <input 
+                type="text" 
+                placeholder="Full Name" 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-white border border-gray-100 rounded-2xl py-4 pl-14 pr-6 focus:outline-none focus:ring-2 focus:ring-[#52c48a]/20 transition-all font-bold text-sm"
+              />
+            </div>
+          )}
+          <div className="relative">
+            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+            <input 
+              type="email" 
+              placeholder="Email Address" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white border border-gray-100 rounded-2xl py-4 pl-14 pr-6 focus:outline-none focus:ring-2 focus:ring-[#52c48a]/20 transition-all font-bold text-sm"
+            />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+            <input 
+              type={showPassword ? "text" : "password"} 
+              placeholder="Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white border border-gray-100 rounded-2xl py-4 pl-14 pr-14 focus:outline-none focus:ring-2 focus:ring-[#52c48a]/20 transition-all font-bold text-sm"
+            />
+            <button 
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+
+          {mode === 'login' && (
+            <div className="text-right">
+              <button type="button" className="text-[10px] font-bold text-[#52c48a] hover:underline">Forgot Password?</button>
+            </div>
+          )}
+
+          {mode === 'signup' && (
+            <div className="flex items-center gap-3 py-2">
+              <input type="checkbox" id="terms" className="w-4 h-4 rounded border-gray-300 text-[#52c48a] focus:ring-[#52c48a]" />
+              <label htmlFor="terms" className="text-[10px] font-bold text-gray-400">
+                I agree to the <span className="text-[#52c48a]">Terms and Conditions</span>
+              </label>
+            </div>
+          )}
+
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#52c48a] text-white rounded-2xl py-4 font-bold shadow-lg shadow-[#52c48a]/20 hover:bg-[#45b37a] transition-all mt-4 disabled:opacity-50"
+          >
+            {loading ? 'Processing...' : mode === 'login' ? 'Log In' : 'Create Account'}
+          </button>
+        </form>
+
+        <div className="mt-8 text-center space-y-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+            <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-widest text-gray-300">
+              <span className="bg-white px-4">{mode === 'login' ? 'New Here?' : 'Already have an account?'}</span>
+            </div>
+          </div>
+
+          {mode === 'login' ? (
+            <button 
+              onClick={() => setMode('signup')}
+              className="w-full bg-white border-2 border-[#52c48a] text-[#52c48a] rounded-2xl py-4 font-bold hover:bg-[#f0f9f4] transition-all"
+            >
+              Create Account
+            </button>
+          ) : (
+            <button 
+              onClick={() => setMode('login')}
+              className="text-xs font-bold text-gray-400"
+            >
+              Already have an account? <span className="text-[#52c48a]">Login</span>
+            </button>
+          )}
+
+          <button 
+            onClick={onLogin}
+            className="w-full flex items-center justify-center gap-3 text-xs font-bold text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
+            Continue with Google
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, trend, icon }: { label: string, value: string, trend: string, icon: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <div className="p-3 bg-[#f0f9f4] rounded-2xl text-[#52c48a]">
+          {icon}
+        </div>
+      </div>
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{label}</p>
+      <h4 className="text-2xl font-bold text-[#1a1a1a] tracking-tight mb-1">{value}</h4>
+      <p className="text-[10px] font-bold text-[#52c48a]">{trend}</p>
     </div>
   );
 }
