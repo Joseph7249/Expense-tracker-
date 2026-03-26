@@ -13,13 +13,14 @@ export interface Expense {
   userId: string;
   amount: number;
   category: string;
+  type: 'income' | 'expense';
   date: any;
   description?: string;
   createdAt: any;
 }
 
 export const CATEGORIES = [
-  "Food", "Transport", "Entertainment", "Education", "Shopping", "Rent", "Utilities", "Other"
+  "Food", "Transport", "Entertainment", "Education", "Shopping", "Rent", "Utilities", "Health", "Income", "Other"
 ] as const;
 
 export type Category = typeof CATEGORIES[number];

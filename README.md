@@ -1,20 +1,30 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Budget Buddy - My Final Project
 
-# Run and deploy your AI Studio app
+Hey there! This is Budget Buddy, the expense tracker I've been working on for my final school project. I wanted to build something that didn't just track numbers but actually looked like an app I'd want to use every day.
 
-This contains everything you need to run your app locally.
+## Why I built this
+Managing money is tough, especially when you're a student. I noticed most apps were either too complicated or just plain ugly. I spent a lot of time on the UI to make it feel "premium" and smooth, using a mobile-first design that works great on my phone.
 
-View your app in AI Studio: https://ai.studio/apps/1fe9c489-da84-40ef-8ecd-a73f2ca9b099
+## What's inside
+*   **Real-time sync:** I used Firebase for the backend, so whenever you add an expense, it's saved instantly.
+*   **Clean Dashboard:** You get a quick look at your total spending and a trend chart to see how you're doing over the week.
+*   **Transaction History:** A dedicated place to search through everything you've spent.
+*   **Smart Analytics:** I added some charts to show which categories are eating up your budget.
+*   **Auth:** Secure login and signup so your data stays yours.
 
-## Run Locally
+## The Tech
+I kept it modern:
+*   **React** for the logic.
+*   **Tailwind CSS** for all the styling (I love how fast it is to build layouts with this).
+*   **Framer Motion** for those smooth transitions between screens.
+*   **Firebase** for Authentication and Firestore (the database).
+*   **Recharts** for the spending trend graphs.
 
-**Prerequisites:**  Node.js
+## How to get it running
+If you want to try it out locally:
+1.  Clone the repo.
+2.  Run `npm install` to get all the packages.
+3.  You'll need a `firebase-applet-config.json` with your own Firebase keys.
+4.  Run `npm run dev` and open it up at `localhost:3000`.
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Hope you like it! It was a lot of work but I'm pretty happy with how the UI turned out.
