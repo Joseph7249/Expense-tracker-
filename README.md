@@ -12,19 +12,6 @@ Managing money is tough, especially when you're a student. I noticed most apps w
 *   **Smart Analytics:** I added some charts to show which categories are eating up your budget.
 *   **Auth:** Secure login and signup so your data stays yours.
 
-## The Tech
-I kept it modern:
-*   **React** for the logic.
-*   **Tailwind CSS** for all the styling (I love how fast it is to build layouts with this).
-*   **Framer Motion** for those smooth transitions between screens.
-*   **Firebase** for Authentication and Firestore (the database).
-*   **Recharts** for the spending trend graphs.
 
-## How to get it running
-If you want to try it out locally:
-1.  Clone the repo.
-2.  Run `npm install` to get all the packages.
-3.  You'll need a `firebase-applet-config.json` with your own Firebase keys.
-4.  Run `npm run dev` and open it up at `localhost:3000`.
 
-Hope you like it! It was a lot of work but I'm pretty happy with how the UI turned out.
+
